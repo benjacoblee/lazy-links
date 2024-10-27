@@ -5,13 +5,22 @@ use std::path;
 use std::path::PathBuf;
 use std::process;
 
+struct Link {
+    url: String,
+    text: String,
+}
+
+fn build_link(url: String, text: String) -> Link {
+    Link { url, text }
+}
+
 fn is_text_file(s: &str) -> bool {
     s.ends_with(".txt") || s.ends_with(".md")
 }
 
-fn get_link_data(buf: &PathBuf) -> Vec<(String, String)> {
+fn get_link_data(buf: &PathBuf) -> Vec<Link> {
     let file = File::open(buf);
-    let mut link_data: Vec<(String, String)> = vec![];
+    let mut link_data: Vec<Link> = vec![];
 
     if file.is_err() {
         println!("Error: could not open file. Are you sure you provided the right path?");
@@ -30,14 +39,17 @@ fn get_link_data(buf: &PathBuf) -> Vec<(String, String)> {
         let inner_text = e.unwrap().inner_text(dom.parser());
         let href = e.unwrap().as_tag().unwrap().attributes().get("href");
         let url = href.unwrap().unwrap().as_utf8_str();
-
-        link_data.push((inner_text.to_string(), url.to_string()));
+        let link = Link {
+            url: url.to_string(),
+            text: inner_text.to_string(),
+        };
+        link_data.push(link);
     }
 
     link_data
 }
 
-fn write_to_file(buf: &PathBuf, links: Vec<(String, String)>) {
+fn write_to_file(buf: &PathBuf, links: Vec<Link>) {
     let file = File::options().append(true).open(buf);
 
     if file.is_err() {
@@ -57,7 +69,7 @@ fn write_to_file(buf: &PathBuf, links: Vec<(String, String)>) {
         let str = format!(
             r#"
 - [{}]({})"#,
-            link.0, link.1
+            link.text, link.url
         );
         let write_res = write!(file, "{str}");
         if write_res.is_err() {
