@@ -1,0 +1,10 @@
+[package]
+name = "lazy-links"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+url = "2.5.2"
+tl = "0.7.8"
+markdown = "1.0.0-alpha.21"
+
