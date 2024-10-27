@@ -10,10 +10,6 @@ struct Link {
     text: String,
 }
 
-fn build_link(url: String, text: String) -> Link {
-    Link { url, text }
-}
-
 fn is_text_file(s: &str) -> bool {
     s.ends_with(".txt") || s.ends_with(".md")
 }
