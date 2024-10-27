@@ -16,7 +16,6 @@ fn is_text_file(s: &str) -> bool {
 
 fn get_link_data(buf: &PathBuf) -> Vec<Link> {
     let file = File::open(buf);
-    let mut link_data: Vec<Link> = vec![];
 
     if file.is_err() {
         println!("Error: could not open file. Are you sure you provided the right path?");
@@ -30,19 +29,20 @@ fn get_link_data(buf: &PathBuf) -> Vec<Link> {
     let dom = tl::parse(&html, tl::ParserOptions::default()).unwrap();
     let elements = dom.query_selector("a").unwrap();
 
-    for el in elements {
-        let e = el.get(dom.parser());
-        let inner_text = e.unwrap().inner_text(dom.parser());
-        let href = e.unwrap().as_tag().unwrap().attributes().get("href");
-        let url = href.unwrap().unwrap().as_utf8_str();
-        let link = Link {
-            url: url.to_string(),
-            text: inner_text.to_string(),
-        };
-        link_data.push(link);
-    }
-
-    link_data
+    elements
+        .into_iter()
+        .map(|el| {
+            let e = el.get(dom.parser());
+            let link_el = e.unwrap();
+            let inner_text = link_el.inner_text(dom.parser());
+            let href = link_el.as_tag().unwrap().attributes().get("href");
+            let url = href.unwrap().unwrap().as_utf8_str();
+            Link {
+                url: url.to_string(),
+                text: inner_text.to_string(),
+            }
+        })
+        .collect::<Vec<Link>>()
 }
 
 fn write_to_file(buf: &PathBuf, links: Vec<Link>) {
